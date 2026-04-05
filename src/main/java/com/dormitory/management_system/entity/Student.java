@@ -10,29 +10,31 @@ public class Student {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
     private String firstName;
-
-    @Column(nullable = false)
     private String lastName;
 
-    @Column(nullable = false, unique = true)
-    private String email;
+    @Column(name = "student_number")
+    private String studentNumber;
 
-    private String roomNumber;
+    @Column(name = "department")
+    private String department;
 
-    // --- Constructor, Getter ve Setter Metotları ---
+    @Column(name = "sleep_time")
+    private Integer sleepTime;
 
-    public Student() {
-    }
+    @Column(name = "wake_up_time")
+    private Integer wakeUpTime;
 
-    public Student(String firstName, String lastName, String email, String roomNumber) {
-        this.firstName = firstName;
-        this.lastName = lastName;
-        this.email = email;
-        this.roomNumber = roomNumber;
-    }
+    @Column(name = "cleanliness_score")
+    private Integer cleanlinessScore;
 
+    @Column(name = "noise_tolerance")
+    private Integer noiseTolerance;
+
+    @Column(name = "kitchen_usage")
+    private Integer kitchenUsage;
+
+    // Getter ve Setter Metotları
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 
@@ -42,9 +44,24 @@ public class Student {
     public String getLastName() { return lastName; }
     public void setLastName(String lastName) { this.lastName = lastName; }
 
-    public String getEmail() { return email; }
-    public void setEmail(String email) { this.email = email; }
+    public String getStudentNumber() { return studentNumber; }
+    public void setStudentNumber(String studentNumber) { this.studentNumber = studentNumber; }
 
-    public String getRoomNumber() { return roomNumber; }
-    public void setRoomNumber(String roomNumber) { this.roomNumber = roomNumber; }
+    public String getDepartment() { return department; }
+    public void setDepartment(String department) { this.department = department; }
+
+    public Integer getSleepTime() { return sleepTime; }
+    public void setSleepTime(Integer sleepTime) { this.sleepTime = sleepTime; }
+
+    public Integer getWakeUpTime() { return wakeUpTime; }
+    public void setWakeUpTime(Integer wakeUpTime) { this.wakeUpTime = wakeUpTime; }
+
+    public Integer getCleanlinessScore() { return cleanlinessScore; }
+    public void setCleanlinessScore(Integer cleanlinessScore) { this.cleanlinessScore = cleanlinessScore; }
+
+    public Integer getNoiseTolerance() { return noiseTolerance; }
+    public void setNoiseTolerance(Integer noiseTolerance) { this.noiseTolerance = noiseTolerance; }
+
+    public Integer getKitchenUsage() { return kitchenUsage; }
+    public void setKitchenUsage(Integer kitchenUsage) { this.kitchenUsage = kitchenUsage; }
 }
