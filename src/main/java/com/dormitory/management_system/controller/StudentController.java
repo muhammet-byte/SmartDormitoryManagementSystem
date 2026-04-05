@@ -23,10 +23,12 @@ public class StudentController {
         return studentRepository.save(student);
     }
 
+
     // 2. Tüm Öğrencileri Listeleme Yolu (GET)
     @GetMapping
     public List<Student> getAllStudents() {
         // Veritabanındaki tüm öğrencileri bulup liste olarak geri gönderir.
         return studentRepository.findAll();
     }
+
 }

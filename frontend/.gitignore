@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # --- FRONTEND ---
 # Kütüphane klasörü (Yüzlerce megabayttır, asla gitmemeli)
 node_modules/
@@ -20,3 +21,29 @@ out/
 # Geçici dosyalar
 .DS_Store
 Thumbs.db
+=======
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+dist-ssr
+*.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+>>>>>>> 5b481a1fc222e282e37689d57354ab5127b3df72
