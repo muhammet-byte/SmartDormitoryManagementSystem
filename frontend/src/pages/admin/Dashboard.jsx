@@ -1,57 +1,53 @@
-export default function AdminDashboard() {
+import React from 'react';
+import { Users, Home, DollarSign, Wrench, Sparkles, ChevronRight } from 'lucide-react';
+
+export default function Dashboard() {
+  // İleride bu veriler Backend'den gelecek
+  const stats = [
+    { title: 'Toplam Öğrenci', value: '452', icon: Users, color: 'bg-blue-500' },
+    { title: 'Boş Yatak', value: '28', icon: Home, color: 'bg-emerald-500' },
+    { title: 'Aylık Tahsilat', value: '₺345.000', icon: DollarSign, color: 'bg-indigo-500' },
+    { title: 'Açık Talepler', value: '9', icon: Wrench, color: 'bg-orange-500' },
+  ];
+
   return (
-    <div>
-      <h2>Admin Dashboard</h2>
-
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px', marginTop: '20px' }}>
-
-        <div style={cardStyle}>
-          <h3>Total Rooms</h3>
-          <p>48</p>
-        </div>
-
-        <div style={cardStyle}>
-          <h3>Occupied</h3>
-          <p>42 / 48</p>
-        </div>
-
-        <div style={cardStyle}>
-          <h3>Available</h3>
-          <p>6</p>
-        </div>
-
+    <div className="space-y-6">
+      {/* İstatistik Kartları */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        {stats.map((stat, index) => (
+          <div key={index} className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm flex items-center gap-4">
+            <div className={`p-3 rounded-xl ${stat.color} text-white shrink-0`}>
+              <stat.icon size={22} />
+            </div>
+            <div>
+              <p className="text-sm text-gray-500 font-medium">{stat.title}</p>
+              <h3 className="text-xl font-bold text-gray-800 leading-tight">{stat.value}</h3>
+            </div>
+          </div>
+        ))}
       </div>
 
-      <div style={infoCardsContainer}>
-        <div style={infoCard}>
-          <h3>Maintenance Requests</h3>
-          <p>8 Pending</p>
+      {/* Akıllı Asistan Özeti */}
+      <div className="bg-gradient-to-br from-indigo-900 to-indigo-700 rounded-2xl shadow-md text-white p-6 relative overflow-hidden">
+        <div className="absolute top-0 right-0 p-8 opacity-10">
+          <Sparkles size={120} />
         </div>
-        <div style={infoCard}>
-          <h3>Leave Requests</h3>
-          <p>3 Pending</p>
-        </div>
-        <div style={infoCard}>
-          <h3>Payments Due</h3>
-          <p>5 Students</p>
+        <div className="relative z-10 flex items-start gap-4">
+          <div className="p-3 bg-white/20 rounded-xl backdrop-blur-sm">
+            <Sparkles size={24} className="text-indigo-100" />
+          </div>
+          <div>
+            <h2 className="text-xl font-bold text-white mb-1">Günün Özeti</h2>
+            <p className="text-indigo-200 text-sm mb-4">Sistemdeki son hareketlere göre öncelikli konular:</p>
+            <div className="space-y-2">
+              <div className="bg-white/10 backdrop-blur-md rounded-lg p-3 flex items-center justify-between border border-white/10 cursor-pointer">
+                <p className="text-sm font-medium">A-204 numaralı odadan acil bakım talebi geldi.</p>
+                <ChevronRight size={16} />
+              </div>
+            </div>
+          </div>
         </div>
       </div>
-
-      <div style={buttonGrid}>
-        <Link to="/admin/map" style={buttonBlue}>View Floor Map</Link>
-        <Link to="/admin/maintenance" style={buttonBlue}>Maintenance Requests</Link>
-        <Link to="/admin/payments" style={buttonGreen}>Payments</Link>
-        <Link to="/admin/leave-requests" style={buttonBlue}>Leave Requests</Link>
-        <Link to="/admin/students" style={buttonGreen}>Students List</Link>
-      </div>
-
     </div>
   );
 }
-
-const cardStyle = { backgroundColor: '#1f2937', padding: '20px', borderRadius: '12px', color: 'white', textAlign: 'center', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)' };
-const infoCardsContainer = { display: 'flex', gap: '20px', marginTop: '30px' };
-const infoCard = { backgroundColor: '#374151', padding: '20px', borderRadius: '12px', color: 'white', flex: 1, textAlign: 'center', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)' };
-const buttonGrid = { display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '20px', marginTop: '40px' };
-const buttonBlue = { backgroundColor: '#2563eb', color: 'white', padding: '12px', borderRadius: '8px', textAlign: 'center', textDecoration: 'none', fontWeight: '600', transition: 'background 0.3s', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)' };
-const buttonGreen = { backgroundColor: '#10b981', color: 'white', padding: '12px', borderRadius: '8px', textAlign: 'center', textDecoration: 'none', fontWeight: '600', transition: 'background 0.3s', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)' };
