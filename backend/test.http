@@ -1,0 +1,13 @@
+### Yeni Öğrenci Ekleme İsteği (POST)
+POST http://localhost:8080/api/students
+Content-Type: application/json
+
+{
+  "firstName": "Muhammet",
+  "lastName": "Kaya",
+  "email": "muhammet@example.com",
+  "roomNumber": "A-101"
+}
+
+### Tüm Öğrencileri Görme İsteği (GET)
+GET http://localhost:8080/api/students
