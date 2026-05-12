@@ -21,7 +21,7 @@ public class MatchController {
     private StudentDetailsRepository studentDetailsRepository;
 
     @Autowired
-    private RoomRepository roomRepository; // Bahsettiğin RoomRepository'i buraya bağladık
+    private RoomRepository roomRepository;
 
     @PostMapping("/find")
     public MatchResultData findBestMatches(@RequestBody MatchRequest request) {
@@ -60,10 +60,10 @@ public class MatchController {
                 }
             }
 
-            // Gerçekçilik için puanı 30 ile 98 arasında tutuyoruz
             score = Math.max(30, Math.min(score, 98));
 
             MatchResponse res = new MatchResponse();
+            res.setRoomId(student.getRoom().getId()); // 🌟 İŞTE EKSİK OLAN HAYATİ KISIM BURASIYDI 🌟
             res.setMatchPercentage(score);
             res.setRoomNumber(student.getRoom().getBlock().getBlockNumber() + ". Blok - Oda "
                     + student.getRoom().getRoomNumber());
@@ -73,15 +73,12 @@ public class MatchController {
             matchedRooms.add(res);
         }
 
-        // Java Collectors ve Stream kullanarak puanları yüksekten düşüğe sıralayıp İLK
-        // 20'yi alıyoruz
         List<MatchResponse> topMatched = matchedRooms.stream()
                 .sorted((a, b) -> Integer.compare(b.getMatchPercentage(), a.getMatchPercentage()))
                 .limit(20)
                 .collect(Collectors.toList());
 
         // --- 2. TAMAMEN BOŞ ODALARI BULMA (%100 UYUMLU) ---
-        // Önce içinde öğrenci olan tüm odaların ID'lerini bir kümeye (Set) alıyoruz
         Set<Long> occupiedRoomIds = allStudents.stream()
                 .filter(s -> s.getRoom() != null)
                 .map(s -> s.getRoom().getId())
@@ -89,16 +86,16 @@ public class MatchController {
 
         List<Room> allRooms = roomRepository.findAll();
 
-        // Boş odaları filtreleyip, ilk 20 tanesini %100 uyumlu olarak listeye ekliyoruz
         List<MatchResponse> emptyRooms = allRooms.stream()
                 .filter(r -> !occupiedRoomIds.contains(r.getId()))
                 .limit(20)
                 .map(r -> {
                     MatchResponse res = new MatchResponse();
+                    res.setRoomId(r.getId()); // 🌟 İŞTE EKSİK OLAN HAYATİ KISIM BURASIYDI 🌟
                     res.setMatchPercentage(100);
                     res.setRoomNumber(r.getBlock().getBlockNumber() + ". Blok - Oda " + r.getRoomNumber());
                     res.setRoommateName("Tamamen Boş Oda");
-                    res.setCommonVibes(new ArrayList<>()); // Boş olduğu için ortak alan yok
+                    res.setCommonVibes(new ArrayList<>());
                     return res;
                 })
                 .collect(Collectors.toList());
@@ -140,10 +137,19 @@ public class MatchController {
     }
 
     public static class MatchResponse {
+        private Long roomId; // 🌟 REACT'İN BEKLEDİĞİ YENİ VERİ ALANI 🌟
         private int matchPercentage;
         private String roomNumber;
         private String roommateName;
         private List<String> commonVibes;
+
+        public Long getRoomId() {
+            return roomId;
+        }
+
+        public void setRoomId(Long roomId) {
+            this.roomId = roomId;
+        }
 
         public int getMatchPercentage() {
             return matchPercentage;

@@ -60,8 +60,13 @@ public class MaintenanceRequest {
     @Column(name = "created_at", insertable = false, updatable = false)
     private LocalDateTime createdAt;
 
-    public void setStudent(User systemUser) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'setStudent'");
+    // Öğrenci için doğru setter metodu
+    public void setStudent(User student) {
+        this.student = student;
+    }
+
+    // Oda için doğru setter metodu
+    public void setRoom(Room room) {
+        this.room = room;
     }
 }

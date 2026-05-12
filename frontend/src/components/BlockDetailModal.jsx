@@ -8,7 +8,6 @@ export default function BlockDetailModal({ block, onClose }) {
     const [maintenanceRequests, setMaintenanceRequests] = useState([]);
     const [loading, setLoading] = useState(true);
 
-    // Modal açıldığında tüm verileri çek ve bu bloğa ait olanları filtrele
     useEffect(() => {
         if (!block) return;
 
@@ -20,12 +19,17 @@ export default function BlockDetailModal({ block, onClose }) {
                     getAllMaintenanceRequests()
                 ]);
 
-                // Sadece TIKLANAN BLOĞA ait öğrencileri filtrele
-                const blockStudents = studentsData.filter(s => s.room?.block?.id === block.id);
+                // GÜVENLİK 1: Tip uyuşmazlığını engellemek için Number() kullanıyoruz
+                const currentBlockId = Number(block.id);
+
+                const blockStudents = studentsData.filter(s =>
+                    s.room && Number(s.room.block?.id) === currentBlockId
+                );
                 setStudents(blockStudents);
 
-                // Sadece TIKLANAN BLOĞA ait şikayetleri filtrele
-                const blockRequests = maintenanceData.filter(m => m.room?.block?.id === block.id);
+                const blockRequests = maintenanceData.filter(m =>
+                    m.room && Number(m.room.block?.id) === currentBlockId
+                );
                 setMaintenanceRequests(blockRequests);
 
             } catch (error) {
@@ -40,10 +44,9 @@ export default function BlockDetailModal({ block, onClose }) {
 
     if (!block) return null;
 
-    // Dinamik olarak Katları, Daireleri ve Odaları Oluşturma Fonksiyonu
     const generateFloors = () => {
         const floors = [];
-        let globalRoomNum = (block.id - 1) * 8 + 1; // MySQL'deki otomatik oda numarası mantığı
+        let globalRoomNum = (Number(block.id) - 1) * 8 + 1;
 
         for (let f = 1; f <= 2; f++) {
             const apartments = [];
@@ -51,22 +54,38 @@ export default function BlockDetailModal({ block, onClose }) {
                 const rooms = [];
                 for (let r = 1; r <= 2; r++) {
 
-                    // Bu odadaki öğrencileri bul (1. ve 2. yatak)
-                    const roomStudents = students.filter(s => s.room?.roomNumber === globalRoomNum);
-                    const bed1 = roomStudents.find(s => s.bedNumber === 1);
-                    const bed2 = roomStudents.find(s => s.bedNumber === 2);
+                    // GÜVENLİK 2: Hem roomNumber hem de id kontrolü yapıyoruz (Backend'in ne döndüğüne karşı sigorta)
+                    const roomStudents = students.filter(s =>
+                        Number(s.room?.roomNumber) === globalRoomNum ||
+                        Number(s.room?.id) === globalRoomNum
+                    );
 
-                    // Bu odada aktif bir bakım talebi veya şikayet var mı?
-                    const roomComplaints = maintenanceRequests.filter(m => m.room?.roomNumber === globalRoomNum && m.status !== 'COMPLETED');
+                    // GÜVENLİK 3: String/Number eşitliği sorunu yaşamamak için gevşek eşitlik (==) kullanıyoruz
+                    const bed1 = roomStudents.find(s => s.bedNumber == 1);
+                    const bed2 = roomStudents.find(s => s.bedNumber == 2);
+
+                    const roomComplaints = maintenanceRequests.filter(m =>
+                        (Number(m.room?.roomNumber) === globalRoomNum || Number(m.room?.id) === globalRoomNum)
+                        && m.status !== 'COMPLETED'
+                    );
+
                     const hasRepair = roomComplaints.some(m => m.type === 'REPAIR');
                     const hasComplaint = roomComplaints.some(m => m.type === 'COMPLAINT');
+
+                    // GÜVENLİK 4: Backend bazen bilgiyi s.user.firstName bazen s.firstName olarak verebilir, ikisini de kapsıyoruz.
+                    const getStudentName = (bedInfo) => {
+                        if (!bedInfo) return "Boş";
+                        const fName = bedInfo.user?.firstName || bedInfo.firstName || "İsimsiz";
+                        const lName = bedInfo.user?.lastName || bedInfo.lastName || "Öğrenci";
+                        return `${fName} ${lName}`;
+                    };
 
                     rooms.push({
                         id: globalRoomNum,
                         name: `Oda ${globalRoomNum}`,
                         beds: [
-                            { id: 1, student: bed1 ? `${bed1.user.firstName} ${bed1.user.lastName}` : "Boş", isFull: !!bed1 },
-                            { id: 2, student: bed2 ? `${bed2.user.firstName} ${bed2.user.lastName}` : "Boş", isFull: !!bed2 }
+                            { id: 1, student: getStudentName(bed1), isFull: !!bed1 },
+                            { id: 2, student: getStudentName(bed2), isFull: !!bed2 }
                         ],
                         hasRepair,
                         hasComplaint
@@ -75,7 +94,6 @@ export default function BlockDetailModal({ block, onClose }) {
                 }
                 apartments.push({ id: a, name: `Daire ${a}`, rooms });
             }
-            // Katları tersten ekliyoruz ki 2. kat üstte görünsün
             floors.unshift({ id: f, name: `${f}. Kat`, apartments });
         }
         return floors;

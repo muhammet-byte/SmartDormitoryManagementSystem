@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class StudentService {
@@ -26,5 +27,16 @@ public class StudentService {
     // ayarı sayesinde tüm detayları da silinir)
     public void deleteStudent(Long id) {
         userRepository.deleteById(id);
+    }
+
+    public StudentDetails getStudentByUserId(Long userId) {
+        return studentDetailsRepository.findByUserId(userId).orElse(null);
+    }
+
+    public List<StudentDetails> getRoommates(Long roomId, Long currentStudentId) {
+        return studentDetailsRepository.findByRoomId(roomId)
+                .stream()
+                .filter(s -> !s.getUserId().equals(currentStudentId))
+                .collect(Collectors.toList());
     }
 }

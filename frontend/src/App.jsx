@@ -11,7 +11,7 @@ import StudentsList from './pages/admin/StudentsList';
 import MaintenanceRequests from './pages/admin/MaintenanceRequests';
 import Payments from './pages/admin/Payments';
 import LeaveRequests from './pages/admin/LeaveRequests';
-
+import RoomChangeRequests from './pages/admin/RoomChangeRequests';
 // Öğrenci Sayfaları ve Layout
 import StudentLayout from './components/StudentLayout';
 import StudentDashboard from './pages/student/StudentDashboard';
@@ -36,6 +36,7 @@ export default function App() {
           <Route path="maintenance" element={<MaintenanceRequests />} />
           <Route path="payments" element={<Payments />} />
           <Route path="leaves" element={<LeaveRequests />} />
+          <Route path="room-changes" element={<RoomChangeRequests />} />
         </Route>
 
         {/* Öğrenci (Student) Rotaları */}

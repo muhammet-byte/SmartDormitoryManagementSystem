@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { Sparkles, Search, CheckCircle, Users, Home, ArrowLeft } from 'lucide-react';
-import { findBestRoomMatch } from '../../services/matchService';
+import { Sparkles, Search, Users, Home, ArrowLeft } from 'lucide-react';
+import { findBestRoomMatch, sendRoomChangeRequest } from '../../services/matchService';
 
 export default function RoomSearch() {
   const [formData, setFormData] = useState({
@@ -16,6 +16,7 @@ export default function RoomSearch() {
 
   const availableVibes = ['Oyun', 'Kitap', 'Müzik', 'Kahve', 'Spor', 'Hayvanlar', 'Sinema'];
 
+  // 1. İlgi Alanı Seçme Fonksiyonu
   const toggleVibe = (vibe) => {
     setFormData(prev => {
       if (prev.vibes.includes(vibe)) return { ...prev, vibes: prev.vibes.filter(v => v !== vibe) };
@@ -24,6 +25,7 @@ export default function RoomSearch() {
     });
   };
 
+  // 2. Arama (Algoritmayı Çalıştırma) Fonksiyonu - EKSİK OLAN BUYDU
   const handleSearch = async (e) => {
     e.preventDefault();
     setIsSearching(true);
@@ -31,16 +33,34 @@ export default function RoomSearch() {
     try {
       const data = await findBestRoomMatch(formData);
       setTimeout(() => {
-        setResults(data); // Artık içinde matchedRooms ve emptyRooms olan bir obje geliyor
+        setResults(data);
         setIsSearching(false);
-      }, 1500);
+      }, 1500); // Gerçekçi bir yapay zeka arama efekti
     } catch (error) {
       alert("Algoritma çalışırken bir hata oluştu!");
       setIsSearching(false);
     }
   };
 
-  // Sonuç Kartı Şablonu
+  // 3. Oda Seçme ve Talep Gönderme Fonksiyonu
+  const handleSelectRoom = async (roomId) => {
+    const currentUserId = localStorage.getItem('userId');
+    if (!currentUserId || !roomId) {
+      alert("Hata: Sistem oda veya kullanıcı kimliğini bulamadı.");
+      return;
+    }
+
+    if (window.confirm("Bu odaya geçiş talebi göndermek istediğinize emin misiniz?")) {
+      try {
+        await sendRoomChangeRequest(currentUserId, roomId);
+        alert("Talebiniz yöneticiye başarıyla iletildi! Onaylandıktan sonra odanız güncellenecektir.");
+      } catch (error) {
+        alert("Talep iletilemedi. Muhtemelen daha önce bekleyen bir talebiniz var veya sistemde bir hata oluştu.");
+      }
+    }
+  };
+
+  // 4. Sonuç Kartı Şablonu
   const ResultCard = ({ match, isEmpty }) => (
     <div className={`p-4 rounded-2xl border ${isEmpty ? 'bg-emerald-50/50 border-emerald-100' : 'bg-gray-50/50 border-gray-100'} hover:shadow-md transition-shadow relative overflow-hidden group`}>
       <div className="flex justify-between items-start mb-2">
@@ -62,7 +82,10 @@ export default function RoomSearch() {
         </div>
       )}
 
-      <button className={`w-full mt-4 py-2 rounded-xl font-bold text-sm transition-colors ${isEmpty ? 'bg-emerald-600 hover:bg-emerald-700 text-white' : 'bg-indigo-600 hover:bg-indigo-700 text-white'} opacity-0 group-hover:opacity-100 transition-opacity`}>
+      {/* Tıklama Özelliği Eklenmiş Buton */}
+      <button
+        onClick={() => handleSelectRoom(match.roomId)}
+        className={`w-full mt-4 py-2 rounded-xl font-bold text-sm transition-all ${isEmpty ? 'bg-emerald-600 hover:bg-emerald-700 text-white' : 'bg-indigo-600 hover:bg-indigo-700 text-white'} opacity-0 group-hover:opacity-100`}>
         Bu Odayı Seç
       </button>
     </div>
@@ -81,7 +104,6 @@ export default function RoomSearch() {
 
           <form onSubmit={handleSearch} className="bg-white p-8 rounded-3xl shadow-sm border border-gray-100 max-w-4xl mx-auto">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-              {/* Form Alanları (Öncekiyle Aynı) */}
               <div className="space-y-4">
                 <h3 className="font-bold text-gray-700 border-b pb-2">Uyku Düzeni</h3>
                 <div>
@@ -127,7 +149,6 @@ export default function RoomSearch() {
           </form>
         </>
       ) : (
-        /* Yapay Zeka Çift Sütunlu Sonuç Ekranı */
         <div className="space-y-6">
           <div className="flex items-center justify-between">
             <div>
@@ -140,8 +161,6 @@ export default function RoomSearch() {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 animate-in fade-in zoom-in duration-500">
-
-            {/* SOL SÜTUN: Oda Arkadaşı Eşleşmeleri */}
             <div className="bg-white rounded-3xl shadow-sm border border-indigo-100 flex flex-col h-[600px]">
               <div className="p-6 border-b border-gray-100 bg-indigo-50/30 rounded-t-3xl">
                 <h3 className="text-xl font-black text-indigo-900 flex items-center gap-2"><Users className="text-indigo-600" /> Oda Arkadaşı Önerileri</h3>
@@ -156,7 +175,6 @@ export default function RoomSearch() {
               </div>
             </div>
 
-            {/* SAĞ SÜTUN: Tamamen Boş Odalar */}
             <div className="bg-white rounded-3xl shadow-sm border border-emerald-100 flex flex-col h-[600px]">
               <div className="p-6 border-b border-gray-100 bg-emerald-50/30 rounded-t-3xl">
                 <h3 className="text-xl font-black text-emerald-900 flex items-center gap-2"><Home className="text-emerald-600" /> Tamamen Boş Odalar</h3>
@@ -170,7 +188,6 @@ export default function RoomSearch() {
                 )}
               </div>
             </div>
-
           </div>
         </div>
       )}
