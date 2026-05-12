@@ -1,3 +1,27 @@
+<<<<<<< HEAD
+# --- FRONTEND ---
+# Kütüphane klasörü (Yüzlerce megabayttır, asla gitmemeli)
+node_modules/
+dist/
+build/
+.env
+
+# --- BACKEND (JAVA) ---
+# Maven'ın derlediği kodlar (Sürekli değişir, gitmemeli)
+target/
+*.class
+
+# --- IDE (INTELLIJ) ---
+# Senin kişisel pencere ve proje ayarların
+.idea/
+*.iml
+out/
+
+# --- DİĞER ---
+# Geçici dosyalar
+.DS_Store
+Thumbs.db
+=======
 # Logs
 logs
 *.log
@@ -22,3 +46,4 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+>>>>>>> 5b481a1fc222e282e37689d57354ab5127b3df72

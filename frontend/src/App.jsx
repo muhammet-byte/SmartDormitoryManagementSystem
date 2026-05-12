@@ -51,3 +51,10 @@ export default function App() {
     </Router>
   );
 }
+
+const navStyle = { backgroundColor: '#0f172a', padding: '15px 30px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', color: 'white', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)' };
+const logoStyle = { fontSize: '20px', fontWeight: '800', letterSpacing: '0.5px' };
+const linkStyle = { color: '#e2e8f0', textDecoration: 'none', marginLeft: '25px', fontWeight: '500', fontSize: '15px', transition: 'color 0.2s' };
+const logoutBtnStyle = { backgroundColor: '#ef4444', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '8px', marginLeft: '25px', cursor: 'pointer', fontWeight: '600', transition: 'background 0.3s' };
+
+export default App;
