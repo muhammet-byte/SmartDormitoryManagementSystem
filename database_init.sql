@@ -89,12 +89,13 @@ CREATE TABLE leave_requests (
 );
 
 -- BAKIM VE ŞİKAYET TALEPLERİ
+-- BAKIM VE ŞİKAYET TALEPLERİ
 CREATE TABLE maintenance_requests (
     id INT AUTO_INCREMENT PRIMARY KEY,
     student_id INT NOT NULL,
     room_id INT,
     type ENUM('REPAIR', 'COMPLAINT') NOT NULL,
-    priority ENUM('LOW', 'MEDIUM', 'HIGH') NOT NULL,
+    priority ENUM('LOW', 'MEDIUM', 'HIGH') DEFAULT 'MEDIUM',
     status ENUM('PENDING', 'IN_PROGRESS', 'COMPLETED') DEFAULT 'PENDING',
     description TEXT NOT NULL,
     admin_response TEXT,

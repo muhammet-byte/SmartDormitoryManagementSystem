@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import {
     LayoutDashboard, Users, Map as MapIcon, DollarSign,
-    Wrench, CalendarDays, Home, LogOut, Menu, Bell
+    Wrench, CalendarDays, Home, LogOut, Menu, Bell, ArrowRightLeft
 } from 'lucide-react';
 
 export default function AdminLayout() {
@@ -16,6 +16,7 @@ export default function AdminLayout() {
         { path: '/admin/payments', label: 'Ödemeler', icon: DollarSign },
         { path: '/admin/maintenance', label: 'Bakım Talepleri', icon: Wrench },
         { path: '/admin/leaves', label: 'İzin Talepleri', icon: CalendarDays },
+        { path: '/admin/room-changes', label: 'Oda Değişiklikleri', icon: ArrowRightLeft }, // YENİ EKLENEN MENÜ BUTONU
     ];
 
     return (

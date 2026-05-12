@@ -10,13 +10,28 @@ export default function Login() {
     const handleLogin = (e) => {
         e.preventDefault();
 
-        // Şimdilik sahte (mock) giriş mantığı kullanıyoruz.
-        // İleride burası Spring Boot Security (JWT) ile güncellenecek.
+        // 1. Yönetici (Admin) Girişi
         if (email === 'admin@smartdorm.com') {
+            localStorage.removeItem('userId');
             navigate('/admin/dashboard');
-        } else {
-            // Admin dışındaki tüm girişleri şimdilik Öğrenci kabul edip yönlendiriyoruz
+            return;
+        }
+
+        // 2. Dinamik Öğrenci Girişi Kontrolü
+        // E-posta formatını kontrol ediyoruz: ogrenci[ID]@smartdorm.com
+        const studentEmailRegex = /^ogrenci(\d+)@smartdorm\.com$/;
+        const match = email.match(studentEmailRegex);
+
+        if (match && password === '1234') {
+            // match[1] bize e-postanın içindeki numarayı (ID) verir.
+            const studentId = match[1];
+
+            // Yakaladığımız ID'yi tarayıcıya kaydedip öğrenci paneline yönlendiriyoruz
+            localStorage.setItem('userId', studentId);
             navigate('/student/dashboard');
+        } else {
+            // Eğer format veya şifre yanlışsa
+            alert('Hatalı giriş! \nÖğrenci formatı: ogrenci[ID]@smartdorm.com \nŞifre: 1234');
         }
     };
 

@@ -9,3 +9,12 @@ export const findBestRoomMatch = async (preferences) => {
         throw error;
     }
 };
+export const sendRoomChangeRequest = async (userId, roomId) => {
+    try {
+        const response = await api.post('/room-change/request', { userId, roomId });
+        return response.data;
+    } catch (error) {
+        console.error("Talep gönderilemedi:", error);
+        throw error;
+    }
+};

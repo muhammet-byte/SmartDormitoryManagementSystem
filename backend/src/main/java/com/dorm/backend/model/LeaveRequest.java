@@ -41,4 +41,12 @@ public class LeaveRequest {
 
     @Column(name = "created_at", insertable = false, updatable = false)
     private LocalDateTime createdAt;
+
+    public void setStudent(User student) {
+        this.student = student;
+    }
+
+    public void setAddress(Address address) {
+        this.address = address;
+    }
 }

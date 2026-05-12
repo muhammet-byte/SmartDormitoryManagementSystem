@@ -13,4 +13,5 @@ public interface MaintenanceRequestRepository extends JpaRepository<MaintenanceR
     List<MaintenanceRequest> findByStatus(MaintenanceRequest.RequestStatus status);
 
     List<MaintenanceRequest> OrderByPriorityDescCreatedAtDesc();
+    
 }
