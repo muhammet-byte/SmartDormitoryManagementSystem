@@ -1,134 +1,172 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Home, Lock, Mail, ArrowRight, Sparkles } from 'lucide-react';
+import { Mail, Lock, ArrowRight, ShieldCheck } from 'lucide-react';
+import { motion, LayoutGroup } from 'framer-motion';
 
 export default function Login() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [isLoggingIn, setIsLoggingIn] = useState(false);
     const navigate = useNavigate();
 
     const handleLogin = (e) => {
         e.preventDefault();
 
-        // 1. Yönetici (Admin) Girişi
         if (email === 'admin@smartdorm.com') {
             localStorage.removeItem('userId');
-            navigate('/admin/dashboard');
+            setIsLoggingIn(true);
+            setTimeout(() => {
+                navigate('/admin/dashboard');
+            }, 800);
             return;
         }
 
-        // 2. Dinamik Öğrenci Girişi Kontrolü
-        // E-posta formatını kontrol ediyoruz: ogrenci[ID]@smartdorm.com
         const studentEmailRegex = /^ogrenci(\d+)@smartdorm\.com$/;
         const match = email.match(studentEmailRegex);
 
         if (match && password === '1234') {
-            // match[1] bize e-postanın içindeki numarayı (ID) verir.
             const studentId = match[1];
-
-            // Yakaladığımız ID'yi tarayıcıya kaydedip öğrenci paneline yönlendiriyoruz
             localStorage.setItem('userId', studentId);
-            navigate('/student/dashboard');
+            setIsLoggingIn(true);
+            setTimeout(() => {
+                navigate('/student/dashboard');
+            }, 800);
         } else {
-            // Eğer format veya şifre yanlışsa
             alert('Hatalı giriş! \nÖğrenci formatı: ogrenci[ID]@smartdorm.com \nŞifre: 1234');
         }
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
-            <div className="max-w-4xl w-full bg-white rounded-3xl shadow-xl overflow-hidden flex flex-col md:flex-row">
+        <LayoutGroup>
+            <div className="min-h-screen bg-[#060F1E] flex items-center justify-center p-4 relative overflow-hidden font-sans antialiased selection:bg-white selection:text-[#060F1E]">
 
-                {/* Sol Taraf: Karşılama ve Branding */}
-                <div className="w-full md:w-5/12 bg-indigo-600 p-8 text-white flex flex-col justify-between relative overflow-hidden">
-                    <div className="relative z-10">
-                        <div className="flex items-center gap-2 mb-12">
-                            <div className="bg-white/20 p-2 rounded-xl backdrop-blur-sm">
-                                <Home size={24} className="text-white" />
-                            </div>
-                            <span className="text-2xl font-black tracking-tight">SmartDorm</span>
+                {/* Arka plan aydınlatmaları */}
+                <div className="absolute top-[-15%] left-[-10%] w-[500px] h-[500px] bg-blue-900/10 rounded-full blur-[120px] pointer-events-none" />
+                <div className="absolute bottom-[-15%] right-[-10%] w-[500px] h-[500px] bg-blue-800/10 rounded-full blur-[120px] pointer-events-none" />
+
+                {/* ANA KART KONTEYNERİ - Gölgeler ve arka plan giriş anında sıfırlanıyor */}
+                <motion.div
+                    animate={{
+                        scale: isLoggingIn ? 0.95 : 1,
+                        backgroundColor: isLoggingIn ? "rgba(10, 19, 38, 0)" : "rgba(10, 19, 38, 1)",
+                        boxShadow: isLoggingIn ? "none" : "0 40px 80px -20px rgba(0,0,0,1)",
+                        borderColor: isLoggingIn ? "rgba(255,255,255,0)" : "rgba(255,255,255,0.05)"
+                    }}
+                    transition={{ duration: 0.4, ease: "easeInOut" }}
+                    className="w-full max-w-5xl border rounded-[2rem] flex flex-col md:flex-row z-10 overflow-hidden relative min-h-[550px]"
+                >
+                    {/* SOL TARAF - Arka plan rengi giriş anında transparan yapıldı */}
+                    <motion.div
+                        animate={{
+                            backgroundColor: isLoggingIn ? "rgba(13, 24, 46, 0)" : "rgba(13, 24, 46, 1)",
+                            borderColor: isLoggingIn ? "rgba(255,255,255,0)" : "rgba(255,255,255,0.05)"
+                        }}
+                        transition={{ duration: 0.4 }}
+                        className="w-full md:w-1/2 p-12 lg:p-16 flex flex-col items-center justify-center relative border-r"
+                    >
+                        {/* Noktalı arka plan deseni yumuşakça siliniyor */}
+                        <motion.div
+                            animate={{ opacity: isLoggingIn ? 0 : 0.02 }}
+                            className="absolute inset-0 bg-[radial-gradient(#ffffff_1px,transparent_1px)] [background-size:24px_24px]"
+                        ></motion.div>
+
+                        <div className="relative z-10 flex flex-col items-center w-full">
+
+                            {/* LOGO - Fixed konumuna geçince arkası tamamen temiz kalır */}
+                            <motion.div
+                                layout
+                                layoutId="agu-logo"
+                                transition={{ type: "spring", stiffness: 120, damping: 20 }}
+                                className={isLoggingIn
+                                    ? "fixed inset-0 m-auto bg-white p-8 rounded-[2rem] shadow-[0_0_80px_rgba(255,255,255,0.1)] w-48 h-48 flex items-center justify-center z-50"
+                                    : "bg-white p-7 rounded-[2rem] shadow-2xl mb-12 w-48 h-48 flex items-center justify-center"
+                                }
+                            >
+                                <img src="/agu-logo.png" alt="AGU Logo" className="w-full h-full object-contain" />
+                            </motion.div>
+
+                            {/* Yazılar */}
+                            <motion.div
+                                animate={{ opacity: isLoggingIn ? 0 : 1, y: isLoggingIn ? 10 : 0 }}
+                                transition={{ duration: 0.3 }}
+                                className="text-center w-full"
+                            >
+                                <h1 className="text-3xl lg:text-4xl font-bold text-white tracking-tight leading-snug">
+                                    Welcome to <br />
+                                    Smart Dormitory <br />
+                                    Management System
+                                </h1>
+                            </motion.div>
                         </div>
 
-                        <h1 className="text-4xl font-black leading-tight mb-4">
-                            Yeni Nesil<br />Yurt Yönetimi
-                        </h1>
-                        <p className="text-indigo-100 font-medium">
-                            Yapay zeka destekli oda eşleştirme ve akıllı yönetim sistemine hoş geldiniz.
-                        </p>
-                    </div>
-
-                    <div className="relative z-10 mt-12">
-                        <div className="bg-white/10 p-4 rounded-2xl border border-white/20 backdrop-blur-md">
-                            <div className="flex items-center gap-2 mb-2">
-                                <Sparkles size={16} className="text-indigo-200" />
-                                <span className="text-sm font-bold text-indigo-100">Test Hesapları</span>
-                            </div>
-                            <p className="text-xs text-indigo-200">Admin: admin@smartdorm.com</p>
-                            <p className="text-xs text-indigo-200">Öğrenci: ogrenci1@smartdorm.com</p>
+                        <div className="absolute bottom-8 left-0 w-full flex justify-center">
+                            <motion.div animate={{ opacity: isLoggingIn ? 0 : 1 }} transition={{ duration: 0.3 }} className="flex items-center gap-2 bg-black/20 px-5 py-2 rounded-full border border-white/5 backdrop-blur-md">
+                                <ShieldCheck size={16} className="text-white" />
+                                <span className="text-xs font-semibold text-white tracking-widest uppercase">AGU Secure Portal</span>
+                            </motion.div>
                         </div>
-                    </div>
+                    </motion.div>
 
-                    {/* Arka Plan Süslemeleri */}
-                    <div className="absolute top-[-10%] right-[-10%] w-64 h-64 bg-indigo-500 rounded-full blur-3xl opacity-50"></div>
-                    <div className="absolute bottom-[-10%] left-[-10%] w-64 h-64 bg-blue-500 rounded-full blur-3xl opacity-50"></div>
-                </div>
+                    {/* SAĞ TARAF - Form alanı */}
+                    <motion.div
+                        animate={{ opacity: isLoggingIn ? 0 : 1, x: isLoggingIn ? 20 : 0 }}
+                        transition={{ duration: 0.3 }}
+                        className="w-full md:w-1/2 p-10 lg:p-16 flex flex-col justify-center bg-[#0A1326]"
+                    >
+                        <div className="mb-12">
+                            <h3 className="text-3xl font-bold text-white mb-3 tracking-tight">Giriş Yap</h3>
+                            <p className="text-slate-400 font-medium">Sisteme erişmek için bilgilerinizi giriniz.</p>
+                        </div>
 
-                {/* Sağ Taraf: Giriş Formu */}
-                <div className="w-full md:w-7/12 p-8 md:p-12 flex items-center justify-center">
-                    <div className="w-full max-w-md">
-                        <h2 className="text-3xl font-bold text-gray-800 mb-2">Giriş Yap</h2>
-                        <p className="text-gray-500 mb-8">Hesabınıza erişmek için bilgilerinizi girin.</p>
-
-                        <form onSubmit={handleLogin} className="space-y-5">
-                            <div>
-                                <label className="block text-sm font-semibold text-gray-700 mb-1.5">E-posta Adresi</label>
-                                <div className="relative">
-                                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                        <form onSubmit={handleLogin} className="space-y-6">
+                            <div className="space-y-2.5">
+                                <label className="text-sm font-semibold text-white ml-1">E-posta Adresi</label>
+                                <div className="relative group">
+                                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                        <Mail size={20} className="text-slate-500 group-focus-within:text-white transition-colors" />
+                                    </div>
                                     <input
                                         type="email"
-                                        required
                                         value={email}
                                         onChange={(e) => setEmail(e.target.value)}
-                                        className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+                                        className="w-full pl-12 pr-4 py-4 bg-[#121C32] border border-white/5 text-white rounded-2xl focus:outline-none focus:ring-1 focus:ring-white focus:border-white transition-all placeholder:text-slate-600 shadow-inner text-base font-medium"
                                         placeholder="ornek@smartdorm.com"
+                                        required
                                     />
                                 </div>
                             </div>
 
-                            <div>
-                                <div className="flex justify-between items-center mb-1.5">
-                                    <label className="block text-sm font-semibold text-gray-700">Şifre</label>
-                                    <a href="#" className="text-xs font-bold text-indigo-600 hover:text-indigo-700">Şifremi Unuttum</a>
+                            <div className="space-y-2.5">
+                                <div className="flex justify-between items-center ml-1">
+                                    <label className="text-sm font-semibold text-white">Şifre</label>
+                                    <a href="#" className="text-sm font-medium text-white hover:text-slate-300 hover:underline underline-offset-4 transition-all">Şifremi Unuttum</a>
                                 </div>
-                                <div className="relative">
-                                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                                <div className="relative group">
+                                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                        <Lock size={20} className="text-slate-500 group-focus-within:text-white transition-colors" />
+                                    </div>
                                     <input
                                         type="password"
-                                        required
                                         value={password}
                                         onChange={(e) => setPassword(e.target.value)}
-                                        className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+                                        className="w-full pl-12 pr-4 py-4 bg-[#121C32] border border-white/5 text-white rounded-2xl focus:outline-none focus:ring-1 focus:ring-white focus:border-white transition-all placeholder:text-slate-600 shadow-inner text-base font-medium"
                                         placeholder="••••••••"
+                                        required
                                     />
                                 </div>
-                            </div>
-
-                            <div className="flex items-center gap-2 pt-2">
-                                <input type="checkbox" id="remember" className="w-4 h-4 text-indigo-600 rounded border-gray-300 focus:ring-indigo-500" />
-                                <label htmlFor="remember" className="text-sm text-gray-600 font-medium">Beni hatırla</label>
                             </div>
 
                             <button
                                 type="submit"
-                                className="w-full bg-gray-900 text-white font-bold py-3.5 rounded-xl hover:bg-indigo-600 transition-colors flex items-center justify-center gap-2 mt-4 group"
+                                className="w-full mt-8 flex items-center justify-center gap-3 py-4 bg-white hover:bg-slate-100 text-[#060F1E] rounded-2xl font-bold text-lg transition-all shadow-[0_0_20px_rgba(255,255,255,0.1)] active:scale-[0.98]"
                             >
                                 Sisteme Giriş Yap
-                                <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
+                                <ArrowRight size={22} strokeWidth={2.5} />
                             </button>
                         </form>
-                    </div>
-                </div>
+                    </motion.div>
+                </motion.div>
             </div>
-        </div>
+        </LayoutGroup>
     );
 }

@@ -174,7 +174,7 @@ BEGIN
             CONCAT('Ogrenci', i), 
             CONCAT('Soyad', i), 
             CONCAT('ogrenci', i, '@smartdorm.com'), 
-            '$2a$10$DUMMYHASHEDPASSWORD', -- Gerçek projede BCrypt ile şifrelenmeli. Şimdilik dummy.
+            'admin', -- Gerçek projede BCrypt ile şifrelenmeli. Şimdilik dummy.
             CONCAT('555', LPAD(i, 7, '0')),
             'ACTIVE'
         );
