@@ -1,36 +1,58 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
-import { Home, Calendar, Wrench, ArrowRight, Users, Loader2, Sparkles, ChevronRight } from 'lucide-react';
+import { Home, Calendar, Wrench, ArrowRight, Users, Loader2, Sparkles, ChevronRight, CreditCard, CheckCircle2 } from 'lucide-react';
 
 export default function StudentDashboard() {
     const [data, setData] = useState(null);
+    const [payments, setPayments] = useState([]); // Yeni: Ödemeler State'i
     const [loading, setLoading] = useState(true);
+    const [paymentLoading, setPaymentLoading] = useState(false);
     const [error, setError] = useState(null);
 
-    useEffect(() => {
-        const userId = localStorage.getItem('userId');
+    const userId = localStorage.getItem('userId');
 
+    const fetchAllData = async () => {
+        try {
+            // Profil verisi
+            const profileResponse = await axios.get(`http://localhost:8080/api/students/me/${userId}`);
+            setData(profileResponse.data);
+
+            // Ödeme verisi
+            const paymentResponse = await axios.get(`http://localhost:8080/api/payments/me/${userId}`);
+            setPayments(paymentResponse.data);
+        } catch (err) {
+            console.error("Veri çekme hatası:", err);
+            setError("Bilgileriniz yüklenirken bir sorun oluştu.");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
         if (!userId) {
             setError("Oturum bilgisi bulunamadı. Lütfen tekrar giriş yapın.");
             setLoading(false);
             return;
         }
+        fetchAllData();
+    }, [userId]);
 
-        const fetchStudentData = async () => {
+    // Ödeme İşlemi
+    const handlePay = async (paymentId) => {
+        if (window.confirm("5.500 ₺ tutarındaki faturayı ödemek istediğinize emin misiniz? (Test Simülasyonu)")) {
+            setPaymentLoading(true);
             try {
-                const response = await axios.get(`http://localhost:8080/api/students/me/${userId}`);
-                setData(response.data);
-            } catch (err) {
-                console.error("Veri çekme hatası:", err);
-                setError("Bilgileriniz yüklenirken bir sorun oluştu.");
+                await axios.put(`http://localhost:8080/api/payments/${paymentId}/pay`);
+                alert("Ödeme başarıyla gerçekleştirildi!");
+                fetchAllData(); // Ekranı yenile
+            } catch (error) {
+                alert("Ödeme sırasında bir hata oluştu.");
             } finally {
-                setLoading(false);
+                setPaymentLoading(false);
             }
-        };
-
-        fetchStudentData();
-    }, []);
+        }
+    };
 
     if (loading) {
         return (
@@ -59,10 +81,13 @@ export default function StudentDashboard() {
     const studentLastName = profile?.user?.lastName || "";
     const room = profile?.room;
 
+    // Aktif (Bekleyen veya Geciken) faturayı bul
+    const pendingPayment = payments?.find(p => p.status === 'PENDING' || p.status === 'OVERDUE');
+
     return (
         <div className="max-w-6xl mx-auto space-y-8 px-4 py-2 animate-in fade-in duration-500">
 
-            {/* 1. ÜST BAR VE KARŞILAMA ALANI */}
+            {/* ÜST BAR */}
             <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-slate-100 pb-6">
                 <div>
                     <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
@@ -71,7 +96,6 @@ export default function StudentDashboard() {
                     <p className="text-slate-400 text-xs font-medium mt-0.5">SmartDorm konaklama durumun ve oda yönetim panelin.</p>
                 </div>
 
-                {/* ARTIK CIVIK MAVİ DEĞİL: Tamamen Koyu ve Elit Profil Kartı */}
                 <div className="flex items-center gap-3.5 bg-white p-2 pr-5 rounded-2xl border border-slate-100 shadow-sm shadow-slate-100/50">
                     <div className="w-10 h-10 bg-slate-900 text-white rounded-xl flex items-center justify-center font-bold text-sm shadow-sm">
                         {studentName[0]}{(studentLastName[0] || '')}
@@ -82,10 +106,10 @@ export default function StudentDashboard() {
                 </div>
             </header>
 
-            {/* ANA GRID YAPISI */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
+            {/* 🔥 ANA GRID YAPISI (Artık 4 Kart İçin 2x2 Formatında) 🔥 */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">
 
-                {/* 2. ODA BİLGİLERİ KARTI */}
+                {/* 1. ODA BİLGİLERİ KARTI */}
                 <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 flex flex-col justify-between h-full">
                     <div>
                         <div className="flex items-center justify-between mb-5">
@@ -118,10 +142,68 @@ export default function StudentDashboard() {
                             </div>
                         </div>
                     </div>
-
                     <Link to="/student/room-status" className="flex items-center justify-between px-4 py-3 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-bold text-xs uppercase tracking-wider transition-all duration-200 shadow-sm group">
                         Oda Detaylarını İncele <ChevronRight size={14} className="group-hover:translate-x-0.5 transition-transform text-slate-400 group-hover:text-white" />
                     </Link>
+                </div>
+
+                {/* 🔥 YENİ EKLENEN KART: FİNANSAL DURUM KARTI 🔥 */}
+                <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 flex flex-col justify-between h-full relative overflow-hidden group">
+                    <div className="absolute -right-6 -top-6 text-slate-50 opacity-50 rotate-12 group-hover:scale-110 transition-transform duration-500">
+                        <CreditCard size={140} />
+                    </div>
+
+                    <div className="relative z-10">
+                        <div className="flex items-center justify-between mb-6">
+                            <div className="flex items-center gap-2 text-slate-800 font-bold text-xs uppercase tracking-wider">
+                                <CreditCard size={16} className="text-indigo-500" /> Finansal Durum
+                            </div>
+                            {pendingPayment ? (
+                                <span className={`px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide rounded-full border ${pendingPayment.status === 'OVERDUE' ? 'bg-rose-50 text-rose-600 border-rose-200 animate-pulse' : 'bg-amber-50 text-amber-600 border-amber-200'}`}>
+                                    {pendingPayment.status === 'OVERDUE' ? 'Gecikti' : 'Ödeme Bekliyor'}
+                                </span>
+                            ) : (
+                                <span className="px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide rounded-full border bg-emerald-50 text-emerald-600 border-emerald-200 flex items-center gap-1">
+                                    <CheckCircle2 size={10} /> Borç Yok
+                                </span>
+                            )}
+                        </div>
+
+                        {pendingPayment ? (
+                            <div>
+                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Güncel Dönem Borcu</p>
+                                <p className={`text-4xl font-black ${pendingPayment.status === 'OVERDUE' ? 'text-rose-600' : 'text-slate-900'}`}>
+                                    ₺{pendingPayment.expectedAmount.toLocaleString('tr-TR')}
+                                </p>
+                                <p className="text-xs font-medium text-slate-500 mt-2 flex items-center gap-1.5 bg-slate-50 inline-flex px-3 py-1.5 rounded-lg border border-slate-100">
+                                    <Calendar size={12} /> Son Ödeme: <span className="font-bold text-slate-700">{new Date(pendingPayment.dueDate).toLocaleDateString('tr-TR')}</span>
+                                </p>
+                            </div>
+                        ) : (
+                            <div className="py-4">
+                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Güncel Dönem Borcu</p>
+                                <p className="text-4xl font-black text-slate-300">₺0</p>
+                                <p className="text-xs font-bold text-emerald-500 mt-2">Bu döneme ait tüm ödemeleriniz tamamlanmıştır. Teşekkürler!</p>
+                            </div>
+                        )}
+                    </div>
+
+                    <div className="relative z-10 mt-6 pt-6 border-t border-slate-100">
+                        {pendingPayment ? (
+                            <button
+                                onClick={() => handlePay(pendingPayment.id)}
+                                disabled={paymentLoading}
+                                className="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold text-sm py-3.5 rounded-xl transition-all shadow-md flex items-center justify-center gap-2 disabled:opacity-70"
+                            >
+                                {paymentLoading ? <Loader2 size={16} className="animate-spin" /> : <CreditCard size={16} />}
+                                Kredi Kartı ile Öde
+                            </button>
+                        ) : (
+                            <button disabled className="w-full bg-slate-100 text-slate-400 font-bold text-sm py-3.5 rounded-xl cursor-not-allowed flex items-center justify-center gap-2">
+                                <CheckCircle2 size={16} /> Ödenecek Fatura Yok
+                            </button>
+                        )}
+                    </div>
                 </div>
 
                 {/* 3. ODA ARKADAŞI KARTTI */}
@@ -161,7 +243,6 @@ export default function StudentDashboard() {
                     </div>
 
                     <div className="space-y-3 flex-1 flex flex-col justify-start">
-                        {/* İzin Talebi Butonu */}
                         <Link to="/student/leaves" className="flex items-center justify-between p-3.5 bg-slate-900 hover:bg-slate-800 text-white rounded-2xl transition-all duration-200 shadow-sm group">
                             <div className="flex items-center gap-3.5 min-w-0">
                                 <div className="bg-slate-800 border border-slate-700 p-2.5 rounded-xl text-slate-300 group-hover:text-white transition-all">
@@ -175,7 +256,6 @@ export default function StudentDashboard() {
                             <ArrowRight size={14} className="text-slate-500 group-hover:text-white group-hover:translate-x-0.5 transition-all" />
                         </Link>
 
-                        {/* Arıza Bildir Butonu */}
                         <Link to="/student/room-status" className="flex items-center justify-between p-3.5 bg-slate-900 hover:bg-slate-800 text-white rounded-2xl transition-all duration-200 shadow-sm group">
                             <div className="flex items-center gap-3.5 min-w-0">
                                 <div className="bg-slate-800 border border-slate-700 p-2.5 rounded-xl text-slate-300 group-hover:text-white transition-all">

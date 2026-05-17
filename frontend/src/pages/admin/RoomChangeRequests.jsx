@@ -27,7 +27,14 @@ export default function RoomChangeRequests() {
             try {
                 await approveRoomChangeRequest(id);
                 alert("Oda değişikliği başarıyla onaylandı!");
-                fetchRequests();
+
+                // 🔥 SİHİRLİ KISIM: Verileri veritabanından yeniden çekmek yerine,
+                // sadece tıklanan satırın durumunu çıkış yapana kadar "APPROVED" olarak hafızada tutuyoruz.
+                setRequests(prevRequests =>
+                    prevRequests.map(req =>
+                        req.id === id ? { ...req, status: 'APPROVED' } : req
+                    )
+                );
             } catch (error) {
                 alert("Onaylama işlemi başarısız oldu. Hedef oda dolu olabilir.");
             }
@@ -40,7 +47,13 @@ export default function RoomChangeRequests() {
             try {
                 await rejectRoomChangeRequest(id);
                 alert("Oda değişikliği talebi reddedildi.");
-                fetchRequests();
+
+                // 🔥 SİHİRLİ KISIM: Tıklanan satırın durumunu çıkış yapana kadar "REJECTED" yapıyoruz.
+                setRequests(prevRequests =>
+                    prevRequests.map(req =>
+                        req.id === id ? { ...req, status: 'REJECTED' } : req
+                    )
+                );
             } catch (error) {
                 alert("Reddetme işlemi sırasında bir hata oluştu.");
             }
@@ -93,7 +106,7 @@ export default function RoomChangeRequests() {
             {/* BAŞLIK ALANI */}
             <div className="border-b border-slate-100 pb-5">
                 <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">Oda Değişiklik Talepleri</h1>
-                <p className="text-sm text-slate-500 mt-1">Öğrencilerin akıllı yapay zeka algoritması ile eşleşerek yönetime gönderdiği oda transfer istekleri.</p>
+                <p className="text-sm text-slate-500 mt-1">Öğrencilerin akıllı yapay zeka algoritması ile eşleşerek yönetime gönderdiği oda transfer isteklerini inceleyin.</p>
             </div>
 
             {/* TALEPLER LİSTESİ */}
@@ -126,12 +139,12 @@ export default function RoomChangeRequests() {
                                     <div className="text-center px-4 py-2 bg-slate-50 border border-slate-100 rounded-xl min-w-[160px]">
                                         <p className="text-[10px] uppercase font-bold text-slate-400 tracking-wider mb-0.5">Talep Edilen Oda</p>
                                         <p className="text-xs font-bold text-indigo-600 flex items-center justify-center gap-1.5">
-                                            <Home size={13} className="text-indigo-400" /> {req.requestedRoom?.block?.blockNumber}. Blok — {req.requestedRoom?.roomNumber}
+                                            <Home size={13} className="text-indigo-400" /> {req.requestedRoom?.block?.blockNumber}. Blok — {req.requestedRoom?.roomNumber}. Oda
                                         </p>
                                     </div>
                                 </div>
 
-                                {/* 3. SADECE ONAYLA VE REDDET BUTONLARI */}
+                                {/* 3. AKSİYON BUTONLARI */}
                                 <div className="flex flex-col items-stretch sm:items-end gap-2 shrink-0 w-full md:w-auto md:flex-1 justify-end">
                                     {req.status === 'PENDING' ? (
                                         <div className="flex items-center gap-2 w-full md:w-auto justify-end">

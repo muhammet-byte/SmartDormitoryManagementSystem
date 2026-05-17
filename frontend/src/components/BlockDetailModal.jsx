@@ -19,7 +19,6 @@ export default function BlockDetailModal({ block, onClose }) {
                     getAllMaintenanceRequests()
                 ]);
 
-                // GÜVENLİK 1: Tip uyuşmazlığını engellemek için Number() kullanıyoruz
                 const currentBlockId = Number(block.id);
 
                 const blockStudents = studentsData.filter(s =>
@@ -54,13 +53,11 @@ export default function BlockDetailModal({ block, onClose }) {
                 const rooms = [];
                 for (let r = 1; r <= 2; r++) {
 
-                    // GÜVENLİK 2: Hem roomNumber hem de id kontrolü yapıyoruz (Backend'in ne döndüğüne karşı sigorta)
                     const roomStudents = students.filter(s =>
                         Number(s.room?.roomNumber) === globalRoomNum ||
                         Number(s.room?.id) === globalRoomNum
                     );
 
-                    // GÜVENLİK 3: String/Number eşitliği sorunu yaşamamak için gevşek eşitlik (==) kullanıyoruz
                     const bed1 = roomStudents.find(s => s.bedNumber == 1);
                     const bed2 = roomStudents.find(s => s.bedNumber == 2);
 
@@ -72,7 +69,6 @@ export default function BlockDetailModal({ block, onClose }) {
                     const hasRepair = roomComplaints.some(m => m.type === 'REPAIR');
                     const hasComplaint = roomComplaints.some(m => m.type === 'COMPLAINT');
 
-                    // GÜVENLİK 4: Backend bazen bilgiyi s.user.firstName bazen s.firstName olarak verebilir, ikisini de kapsıyoruz.
                     const getStudentName = (bedInfo) => {
                         if (!bedInfo) return "Boş";
                         const fName = bedInfo.user?.firstName || bedInfo.firstName || "İsimsiz";
@@ -80,9 +76,16 @@ export default function BlockDetailModal({ block, onClose }) {
                         return `${fName} ${lName}`;
                     };
 
+                    // ============================================================
+                    // 🔥 ÇÖZÜM: LOKAL ODA NUMARASI HESAPLAMA 🔥
+                    // ============================================================
+                    // globalRoomNum veritabanı ID'si (41) olarak kalıyor (Filtreler kırılmasın diye)
+                    // localRoomNum ise ekranda her blokta bağımsız olarak 1, 2, 3... yazar.
+                    const localRoomNum = globalRoomNum - ((Number(block.id) - 1) * 8);
+
                     rooms.push({
                         id: globalRoomNum,
-                        name: `Oda ${globalRoomNum}`,
+                        name: `Oda ${localRoomNum}`, // 🌟 Değişen satır: Artık global değil lokal numara yazıyor!
                         beds: [
                             { id: 1, student: getStudentName(bed1), isFull: !!bed1 },
                             { id: 2, student: getStudentName(bed2), isFull: !!bed2 }

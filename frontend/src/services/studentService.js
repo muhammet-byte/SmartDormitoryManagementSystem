@@ -28,3 +28,12 @@ export const createStudent = async (studentData) => {
         throw error;
     }
 };
+export const addStudent = async (studentData) => {
+    try {
+        const response = await api.post('/students', studentData);
+        return response.data;
+    } catch (error) {
+        console.error("Öğrenci eklenemedi:", error);
+        throw error;
+    }
+};

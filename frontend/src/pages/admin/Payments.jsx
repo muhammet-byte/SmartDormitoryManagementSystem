@@ -6,11 +6,18 @@ export default function Payments() {
   const [paymentsList, setPaymentsList] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  // 🔥 YENİ: Arama terimini hafızada tutacak state
+  const [searchTerm, setSearchTerm] = useState('');
+
   useEffect(() => {
     const fetchPayments = async () => {
       try {
         const data = await getAllPayments();
-        setPaymentsList(data);
+
+        // Gelen verileri tutara (expectedAmount) göre en büyükten küçüğe sıralar
+        const sortedData = data.sort((a, b) => b.expectedAmount - a.expectedAmount);
+
+        setPaymentsList(sortedData);
       } catch (error) {
         console.error("Veriler yüklenemedi");
       } finally {
@@ -28,9 +35,21 @@ export default function Payments() {
     );
   }
 
+  // Üst taraftaki elit metrikler (Genel durumu göstermesi için tüm listeyi hesaplamaya devam ediyor)
   const totalPaid = paymentsList.filter(p => p.status === 'PAID').reduce((acc, curr) => acc + curr.expectedAmount, 0);
-  const totalOverdue = paymentsList.filter(p => p.status === 'OVERDUE').reduce((acc, curr) => acc + curr.expectedAmount, 0);
-  const totalPending = paymentsList.filter(p => p.status === 'PENDING').reduce((acc, curr) => acc + curr.expectedAmount, 0);
+  const totalPending = paymentsList.filter(p => p.status === 'PENDING' || p.status === 'OVERDUE').reduce((acc, curr) => acc + curr.expectedAmount, 0);
+
+  // 🔥 SİHİRLİ KISIM: Tablo için verileri arama terimine göre anlık olarak filtreliyoruz
+  const filteredPayments = paymentsList.filter((payment) => {
+    const firstName = payment.student?.firstName?.toLowerCase() || '';
+    const lastName = payment.student?.lastName?.toLowerCase() || '';
+    const fullName = `${firstName} ${lastName}`;
+    const invoiceNo = payment.invoiceNo?.toLowerCase() || '';
+    const search = searchTerm.toLowerCase();
+
+    // Ad, Soyad, Tam Ad veya Fatura No içinde arama terimi geçiyor mu?
+    return fullName.includes(search) || invoiceNo.includes(search);
+  });
 
   const getStatusBadge = (status) => {
     switch (status) {
@@ -53,29 +72,34 @@ export default function Payments() {
         <p className="text-sm text-slate-500 mt-1">Öğrencilerin taksit ve depozito tahsilat durumlarını canlı olarak izleyin.</p>
       </div>
 
-      {/* SADE VE ELİT MESTRİKLER */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 shrink-0">
+      {/* 2'Lİ SADE VE ELİT METRİKLER */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 shrink-0">
         <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm border-l-4 border-l-emerald-500">
           <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Tahsil Edilen</p>
           <h3 className="text-2xl font-black text-slate-900">₺{totalPaid.toLocaleString('tr-TR')}</h3>
         </div>
-        <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm border-l-4 border-l-rose-500">
-          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Geciken Tahsilat</p>
-          <h3 className="text-2xl font-black text-slate-900">₺{totalOverdue.toLocaleString('tr-TR')}</h3>
-        </div>
-        <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm border-l-4 border-l-slate-400">
-          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Bekleyen Gelecek</p>
+        <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm border-l-4 border-l-amber-500">
+          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Bekleyen Tahsilat</p>
           <h3 className="text-2xl font-black text-slate-900">₺{totalPending.toLocaleString('tr-TR')}</h3>
         </div>
       </div>
 
-      {/* VERİ TABLOSU */}
+      {/* VERİ TABLOSU KAPSAYICISI */}
       <div className="bg-white border border-slate-200/80 rounded-2xl shadow-sm overflow-hidden flex flex-col">
         <div className="p-4 border-b border-slate-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 bg-slate-50/40">
+
+          {/* AKTİFLEŞTİRİLEN ARAMA İNPUTU */}
           <div className="relative w-full sm:w-80">
             <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
-            <input type="text" placeholder="Fatura no veya öğrenci adı..." className="w-full bg-white border border-slate-200 rounded-xl pl-10 pr-4 py-2 text-sm font-medium text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-slate-900" />
+            <input
+              type="text"
+              placeholder="Fatura no veya öğrenci adı..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)} // Klavyeden basılan her harfte state güncellenir
+              className="w-full bg-white border border-slate-200 rounded-xl pl-10 pr-4 py-2 text-sm font-medium text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-slate-900 transition-all"
+            />
           </div>
+
           <button className="flex items-center gap-2 px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-bold uppercase tracking-wider text-slate-600 hover:bg-slate-50 transition-all shadow-sm">
             <Filter size={14} /> Filtrele
           </button>
@@ -93,7 +117,8 @@ export default function Payments() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 text-sm">
-              {paymentsList.map((payment) => (
+              {/* Artık doğrudan paymentsList değil, filtrelenmiş liste (filteredPayments) dönüyor */}
+              {filteredPayments.map((payment) => (
                 <tr key={payment.id} className="hover:bg-slate-50/40 transition-colors group">
                   <td className="py-3.5 px-5">
                     <p className="font-semibold text-slate-900">{payment.student?.firstName} {payment.student?.lastName}</p>
@@ -102,7 +127,9 @@ export default function Payments() {
                   <td className="py-3.5 px-5 text-slate-600 font-medium">
                     {payment.paymentType === 'MONTHLY_INSTALLMENT' ? 'Aylık Taksit' : 'Depozito'}
                   </td>
+
                   <td className="py-3.5 px-5 font-bold text-slate-900">₺{payment.expectedAmount.toLocaleString('tr-TR')}</td>
+
                   <td className="py-3.5 px-5">{getStatusBadge(payment.status)}</td>
                   <td className="py-3.5 px-5 text-right opacity-0 group-hover:opacity-100 transition-opacity">
                     <button className="p-1.5 text-slate-600 bg-slate-50 border border-slate-200 hover:bg-white rounded-lg transition-all font-bold text-xs uppercase tracking-wider flex items-center gap-1.5 ml-auto shadow-sm">
@@ -113,6 +140,13 @@ export default function Payments() {
               ))}
             </tbody>
           </table>
+
+          {/* Arama sonucunda hiçbir fatura eşleşmezse kullanıcıya bilgi veriyoruz */}
+          {filteredPayments.length === 0 && (
+             <div className="text-center py-12 text-slate-400 font-medium bg-slate-50/20">
+               Aranan kriterlere uygun fatura veya öğrenci kaydı bulunamadı.
+             </div>
+          )}
         </div>
       </div>
     </div>

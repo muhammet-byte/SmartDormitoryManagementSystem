@@ -21,3 +21,14 @@ export const approveRoomChangeRequest = async (id) => {
         throw error;
     }
 };
+
+// Yöneticinin talebi reddetmesi için (BEYAZ EKRANI ÇÖZEN YENİ FONKSİYON)
+export const rejectRoomChangeRequest = async (id) => {
+    try {
+        const response = await api.put(`/room-change/${id}/reject`);
+        return response.data;
+    } catch (error) {
+        console.error("Talep reddedilirken hata oluştu:", error);
+        throw error;
+    }
+};

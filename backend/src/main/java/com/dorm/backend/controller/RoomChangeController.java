@@ -108,4 +108,26 @@ public class RoomChangeController {
             return ResponseEntity.badRequest().body("Onaylama başarısız: " + e.getMessage());
         }
     }
+
+    // 🔥 YENİ EKLENEN KISIM: Yöneticinin talebi reddetmesini sağlayan endpoint
+    @PutMapping("/{id}/reject")
+    public ResponseEntity<?> rejectRequest(@PathVariable Long id) {
+        try {
+            RoomChangeRequest request = requestRepository.findById(id).orElseThrow();
+
+            // Sadece beklemede olan (PENDING) talepler reddedilebilir
+            if (request.getStatus() == RoomChangeRequest.RequestStatus.APPROVED) {
+                return ResponseEntity.badRequest().body("Onaylanmış bir talep reddedilemez!");
+            }
+
+            // Durumu REJECTED olarak güncelle ve veritabanına kaydet
+            request.setStatus(RoomChangeRequest.RequestStatus.REJECTED);
+            requestRepository.save(request);
+
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().body("Reddetme başarısız: " + e.getMessage());
+        }
+    }
 }

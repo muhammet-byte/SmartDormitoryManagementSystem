@@ -1,9 +1,7 @@
 package com.dorm.backend.controller;
 
-import com.dorm.backend.model.LeaveRequest;
-import com.dorm.backend.model.MaintenanceRequest;
-import com.dorm.backend.repository.LeaveRequestRepository;
-import com.dorm.backend.repository.MaintenanceRequestRepository;
+import com.dorm.backend.model.StudentDetails;
+import com.dorm.backend.repository.RoomRepository;
 import com.dorm.backend.repository.StudentDetailsRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -18,36 +16,45 @@ import java.util.Map;
 public class AdminController {
 
     @Autowired
-    private LeaveRequestRepository leaveRequestRepository;
-    @Autowired
-    private MaintenanceRequestRepository maintenanceRequestRepository;
-    @Autowired
     private StudentDetailsRepository studentDetailsRepository;
 
-    @GetMapping("/dashboard-stats")
+    @Autowired
+    private RoomRepository roomRepository;
+
+    @GetMapping("/stats")
     public ResponseEntity<?> getDashboardStats() {
-        Map<String, Object> stats = new HashMap<>();
+        try {
+            // 1. Toplam Kayıtlı Öğrenci Sayısı (Anlık Veritabanı Sayımı)
+            long registeredStudents = studentDetailsRepository.count();
 
-        // Bekleyen izinleri sayıyoruz
-        long pendingLeaves = leaveRequestRepository.findAll().stream()
-                .filter(l -> l.getStatus() == LeaveRequest.LeaveStatus.PENDING).count();
+            // 2. Aktif Doluluk Oranı Hesaplama
+            // Odası null olmayan (bir yatağa atanmış) öğrencileri sayıyoruz
+            long activeOccupants = studentDetailsRepository.findAll().stream()
+                    .filter(s -> s.getRoom() != null)
+                    .count();
 
-        // Bekleyen arıza ve şikayetleri sayıyoruz
-        long pendingMaintenance = maintenanceRequestRepository.findAll().stream()
-                .filter(m -> m.getStatus() == MaintenanceRequest.RequestStatus.PENDING).count();
+            // Toplam yatak kapasitesi (Toplam Oda Sayısı * 2)
+            long totalCapacity = roomRepository.count() * 2;
 
-        // Toplam yerleşmiş öğrenci sayısını alıyoruz
-        long totalStudents = studentDetailsRepository.count();
+            long occupancyRate = 0;
+            if (totalCapacity > 0) {
+                occupancyRate = Math.round((double) activeOccupants / totalCapacity * 100);
+            }
 
-        // Şimdilik toplam kapasiteyi (128 Oda * 2 = 256) statik verebiliriz,
-        // ileride RoomRepository üzerinden dinamik çekilebilir.
-        long totalCapacity = 256;
+            // Verileri Frontend'in beklediği JSON formatına paketliyoruz
+            Map<String, Object> stats = new HashMap<>();
+            stats.put("registeredStudents", registeredStudents);
+            stats.put("occupancyRate", occupancyRate);
+            stats.put("pendingMaintenance", 0); // İleride arıza tablonuza göre dinamik bağlayabilirsiniz
+            stats.put("pendingLeaves", 0);       // İleride izin tablonuza göre dinamik bağlayabilirsiniz
 
-        stats.put("pendingLeaves", pendingLeaves);
-        stats.put("pendingMaintenance", pendingMaintenance);
-        stats.put("totalStudents", totalStudents);
-        stats.put("occupancyRate", (int) ((totalStudents * 100.0) / totalCapacity));
+            return ResponseEntity.ok(stats);
 
-        return ResponseEntity.ok(stats);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().body("İstatistikler hesaplanırken hata oluştu: " + e.getMessage());
+        }
     }
+
+    // --- Mevcut Diğer Admin Metotların Varsa Aşağıya Eklemeye Devam Edebilirsin ---
 }
